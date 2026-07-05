@@ -1,0 +1,799 @@
+<title>Agent Field Notes — Mark's Notebook</title>
+<style>
+  :root{
+    --paper:#EDEFF1;
+    --paper-line:#D6DADD;
+    --ink:#1B2430;
+    --ink-soft:#4A5566;
+    --caption:#7C8492;
+    --signal:#2F6F5E;
+    --signal-soft:#E4EEEC;
+    --stop:#AD5A3B;
+    --stop-soft:#F5E7E1;
+    --card:#F7F7F5;
+    color-scheme:light;
+  }
+  :root[data-theme="dark"]{
+    --paper:#1B2027;
+    --paper-line:#333B46;
+    --ink:#E7EAEE;
+    --ink-soft:#AEB6C2;
+    --caption:#8B93A1;
+    --signal:#4FBF9E;
+    --signal-soft:#1E3833;
+    --stop:#E08862;
+    --stop-soft:#3A241B;
+    --card:#232A33;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:transparent;}
+  body{
+    color:var(--ink);
+    font-family:Charter,"Iowan Old Style","Georgia",serif;
+    font-size:17px;
+    line-height:1.6;
+  }
+  .bg-anim{
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    background:linear-gradient(135deg,
+      #F04B5C 0%,   /* coral */
+      #C43FB8 24%,  /* magenta */
+      #8A4CDA 48%,  /* purple */
+      #6B6FE3 72%,  /* blue-violet */
+      #6E82E8 100%  /* periwinkle */
+    );
+    background-size:280% 280%;
+    animation:driftGradient 36s ease-in-out infinite;
+  }
+  @keyframes driftGradient{
+    0%{background-position:0% 40%;}
+    50%{background-position:100% 60%;}
+    100%{background-position:0% 40%;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .bg-anim{animation:none;background-position:0% 40%;}
+  }
+  .mono{
+    font-family:ui-monospace,"SF Mono","Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+  }
+  .sheet{
+    max-width:760px;
+    margin:40px auto;
+    padding:56px 28px 120px;
+    background:var(--paper);
+    border-radius:14px;
+    box-shadow:0 30px 80px -30px rgba(30,10,50,0.45);
+    transition:background .25s ease;
+  }
+  body, .node, .panel, .callout, .decision, th, td, code, .stat{
+    transition:background-color .25s ease, color .25s ease, border-color .25s ease;
+  }
+
+  .theme-toggle{
+    position:fixed;
+    top:22px;
+    right:22px;
+    z-index:10;
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    border:1.5px solid var(--ink);
+    background:var(--card);
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    box-shadow:0 6px 18px -6px rgba(0,0,0,0.35);
+    transition:background-color .25s ease, border-color .25s ease, transform .15s ease;
+  }
+  .theme-toggle:hover{transform:scale(1.06);}
+  .theme-toggle:focus-visible{outline:2px solid var(--signal);outline-offset:2px;}
+  .theme-toggle svg{width:19px;height:19px;}
+  .theme-toggle .icon-moon{display:block;}
+  .theme-toggle .icon-sun{display:none;}
+  :root[data-theme="dark"] .theme-toggle .icon-moon{display:none;}
+  :root[data-theme="dark"] .theme-toggle .icon-sun{display:block;}
+  @media (prefers-reduced-motion:reduce){
+    .sheet, body, .node, .panel, .callout, .decision, th, td, code, .stat, .theme-toggle{transition:none;}
+  }
+  header.top{
+    border-bottom:2px solid var(--ink);
+    padding-bottom:18px;
+    margin-bottom:8px;
+  }
+  .kicker{
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    font-size:12px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--signal);
+    font-weight:600;
+  }
+  h1{
+    font-size:2.15rem;
+    margin:.25em 0 .1em;
+    text-wrap:balance;
+    letter-spacing:-0.01em;
+  }
+  .subtitle{
+    color:var(--ink-soft);
+    font-size:1.02rem;
+    max-width:60ch;
+  }
+  .revlog{
+    margin-top:16px;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    font-size:11.5px;
+    color:var(--caption);
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px 18px;
+  }
+  .revlog span b{color:var(--ink-soft);}
+
+  section{margin-top:44px;}
+  .tag{
+    display:inline-block;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    font-size:11.5px;
+    letter-spacing:.08em;
+    color:var(--signal);
+    border:1px solid var(--signal);
+    border-radius:3px;
+    padding:2px 7px;
+    margin-bottom:10px;
+    background:var(--signal-soft);
+  }
+  h2{
+    font-size:1.4rem;
+    margin:.2em 0 .5em;
+    text-wrap:balance;
+  }
+  h3{
+    font-size:1rem;
+    margin:1.4em 0 .5em;
+    color:var(--ink);
+    font-weight:700;
+    letter-spacing:-.005em;
+  }
+  p{margin:.7em 0;}
+  .lede{color:var(--ink-soft);}
+  section ul:not(.checklist),
+  section ol{
+    margin:.6em 0 .8em;
+    padding-left:1.35em;
+  }
+  section ul:not(.checklist) li,
+  section ol li{
+    margin:.4em 0;
+  }
+
+  .callout{
+    border-left:3px solid var(--stop);
+    background:var(--stop-soft);
+    padding:12px 16px;
+    border-radius:0 4px 4px 0;
+    margin:16px 0;
+  }
+  .callout .label{
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--stop);
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  .decision{
+    border:1.5px dashed var(--signal);
+    background:var(--signal-soft);
+    padding:14px 16px;
+    border-radius:4px;
+    margin:16px 0;
+  }
+  .decision .label{
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--signal);
+    font-weight:700;
+    margin-bottom:6px;
+  }
+
+  /* diagrams */
+  .panel{
+    border:1px solid var(--paper-line);
+    background:
+      linear-gradient(var(--card),var(--card)),
+      repeating-linear-gradient(0deg, transparent, transparent 23px, var(--paper-line) 23px, var(--paper-line) 24px);
+    background-blend-mode:normal;
+    border-radius:6px;
+    padding:22px;
+    margin:18px 0;
+    overflow-x:auto;
+  }
+  .diagram-title{
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--caption);
+    margin-bottom:14px;
+  }
+  .flow-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .node{
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    font-size:13px;
+    border:1.5px solid var(--ink);
+    background:var(--card);
+    border-radius:5px;
+    padding:9px 13px;
+    white-space:nowrap;
+  }
+  .node.signal{border-color:var(--signal);color:var(--signal);background:var(--signal-soft);font-weight:600;}
+  .node.stop{border-color:var(--stop);color:var(--stop);background:var(--stop-soft);}
+  .arrow{color:var(--ink-soft);font-size:16px;}
+  .loop-wrap{display:flex;flex-direction:column;gap:8px;align-items:flex-start;}
+  .compare{display:flex;gap:22px;flex-wrap:wrap;}
+  .compare > div{flex:1;min-width:230px;}
+  .compare h4{
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    font-size:12px;letter-spacing:.06em;text-transform:uppercase;
+    margin:0 0 10px;color:var(--ink-soft);
+  }
+
+  table{border-collapse:collapse;width:100%;font-size:15px;margin:14px 0;}
+  th,td{border:1px solid var(--paper-line);padding:9px 11px;text-align:left;vertical-align:top;}
+  th{
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--caption);background:var(--card);
+  }
+  code{
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    font-size:.88em;
+    background:var(--card);
+    border:1px solid var(--paper-line);
+    padding:1px 5px;
+    border-radius:3px;
+  }
+  pre{
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    font-size:13.2px;
+    background:#20272F;
+    color:#DDE3E8;
+    padding:16px 18px;
+    border-radius:6px;
+    overflow-x:auto;
+    line-height:1.55;
+  }
+  pre .c{color:#7FA6C9;}
+  pre .s{color:#2FB08B;}
+  pre .k{color:#D48A5F;}
+
+  ul.checklist{list-style:none;padding:0;margin:14px 0;}
+  ul.checklist li{
+    padding:8px 0 8px 26px;
+    position:relative;
+    border-bottom:1px solid var(--paper-line);
+  }
+  ul.checklist li::before{
+    content:"□";
+    position:absolute;left:0;top:8px;
+    color:var(--signal);font-size:15px;
+  }
+  .qa{
+    margin:16px 0;
+    padding-left:16px;
+    border-left:2px solid var(--paper-line);
+  }
+  .qa .q{
+    font-weight:700;
+    margin:0 0 5px;
+  }
+  .qa .a{
+    color:var(--ink-soft);
+    margin:0;
+  }
+  .qa .a .ref{
+    display:block;
+    margin-top:5px;
+    font-size:.82em;
+    color:var(--caption);
+  }
+  footer{
+    margin-top:60px;
+    padding-top:16px;
+    border-top:1px solid var(--paper-line);
+    font-size:12.5px;
+    color:var(--caption);
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+</style>
+
+<div class="bg-anim"></div>
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode">
+  <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+</button>
+<div class="sheet">
+  <header class="top">
+    <div class="kicker">Mark — Principal AI Systems Engineer</div>
+    <h1>Building Your First Agent</h1>
+    <div class="subtitle">Field notes for the right_job.in live-build round: three small agents, a database, a dashboard, one hour. Written for someone who has never built one before.</div>
+    <div class="revlog">
+      <span>rev <b>1</b> — initial: what an agent is, the naive→fix→boundary walk, architecture mapping</span>
+      <span>rev <b>2</b> — LLM decided (Claude API), added real call shape + agent picks</span>
+      <span>rev <b>3</b> — §6 added: leaner cut, dropping classes/schema-file/server-dashboard</span>
+      <span>rev <b>4</b> — subheadings/lists throughout; §7 open decision: which shape to build</span>
+      <span>rev <b>5</b> — §7 resolved: build both, sequenced — Leaner Cut first (rehearsal), Original second (portfolio)</span>
+      <span>rev <b>6</b> — dark mode toggle added, persists via localStorage</span>
+      <span>rev <b>7</b> — §9 handling AI mistakes live, §10 anticipated interviewer questions</span>
+      <span>rev <b>8</b> — §10 filled in with answers, not just questions</span>
+      <span>rev <b>9</b> — §10 answers rewritten first-person, spoken to the interviewer</span>
+      <span>rev <b>10</b> — provider switched Claude → Gemini (free tier) in §7/§8, both built projects updated to match</span>
+      <span>rev <b>11</b> — §10 added: why no control loop, spoken to the interviewer</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="tag">§0 THE ASK</div>
+    <h2>What they actually said</h2>
+    <h3>Requirements</h3>
+    <ul>
+      <li>Three small agents, each gathering/processing info via LLM or API calls</li>
+      <li>Independent <em>or</em> collaborative — decided per task, not fixed in advance</li>
+      <li>A database persists outputs and execution logs</li>
+      <li>A dashboard displays the result</li>
+      <li>Tasks are announced live, on the day — nothing to pre-build for the specific task</li>
+    </ul>
+    <h3>The real constraint</h3>
+    <p class="lede">Not "can you build an agent" — "can you justify each decision while building it, under a clock." No blind paste; every choice gets explained out loud. Everything below is written for that.</p>
+  </section>
+
+  <section>
+    <div class="tag">§1 NAIVE APPROACH</div>
+    <h2>"An agent is just a chatbot that's smart enough to figure it out"</h2>
+    <p>This is where almost everyone starts. One prompt in, one LLM response out. Call it "the agent," ship it.</p>
+    <div class="panel">
+      <div class="diagram-title">naive shape</div>
+      <div class="flow-row">
+        <div class="node">Task</div>
+        <div class="arrow">→</div>
+        <div class="node signal">LLM call</div>
+        <div class="arrow">→</div>
+        <div class="node">Answer</div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="label">Where it breaks</div>
+      <p style="margin:0">One call has no memory of its own steps, can't decide to go fetch something it's missing, and can't act on the world (call an API, write a file, query a DB) mid-thought. The moment the task needs "look something up, THEN reason about it, THEN maybe look up something else" — a single call can't do that. It's a function, not an agent.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="tag">§2 COUNTER-INTUITIVE FIX</div>
+    <h2>An agent is a loop, not a smarter model</h2>
+    <p>The model doesn't change. What changes is that you wrap it in a cycle: observe the current state → decide what to do next → take one action (call a tool/API, or answer) → observe the result → repeat until a stop condition fires. This is the minimal shape behind almost every agent pattern you'll hear named (ReAct, plan-and-execute, etc) — they're variations on this loop, not something categorically different from it.</p>
+    <div class="panel">
+      <div class="diagram-title">minimal agent loop</div>
+      <div class="loop-wrap">
+        <div class="flow-row">
+          <div class="node">Observe state</div>
+          <div class="arrow">→</div>
+          <div class="node signal">Decide next action</div>
+          <div class="arrow">→</div>
+          <div class="node">Act (tool / API / answer)</div>
+        </div>
+        <div class="flow-row" style="padding-left:26px;">
+          <div class="arrow">↺</div>
+          <span class="mono" style="font-size:12.5px;color:var(--ink-soft);">loops back to Observe until stop condition</span>
+        </div>
+      </div>
+    </div>
+    <h3>Setting a stop condition</h3>
+    <p><strong>Not optional</strong> — it's the difference between an agent and a runaway bill. Three ways to set one:</p>
+    <ol>
+      <li>Fixed max-iterations count</li>
+      <li>A "task complete" signal the model itself emits</li>
+      <li>A budget (time/tokens/cost) checked every cycle</li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="tag">§3 BOUNDARY</div>
+    <h2>Where the loop itself becomes the wrong answer</h2>
+    <p>The full observe-decide-act loop is built for tasks whose length you can't predict up front — open-ended research, multi-step debugging, anything where the number of steps depends on what the agent finds along the way.</p>
+    <div class="callout">
+      <div class="label">This is where your interview task probably lives, and probably doesn't need it</div>
+      <p style="margin:0">You're told to build <em>three small agents</em>, not one deep-reasoning loop. That phrasing is a strong signal: each agent is likely a <strong>single-shot</strong> worker — one well-structured LLM/API call per agent, with clear input and output — not each agent running its own internal loop. Building full ReAct loops into all three, live, under an hour, burns your clock on machinery the task didn't ask for. Reach for a loop inside one agent only if that specific agent's task is genuinely open-ended (e.g. "keep searching until you find X").</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="tag">§4 MAPPING TO THE INTERVIEW</div>
+    <h2>Three single-shot agents + a shared blackboard</h2>
+    <p>Agents don't need to call each other directly. Every input/output gets written to one shared table — the <strong>blackboard</strong> — which both the DB-persistence requirement and the dashboard read from directly.</p>
+    <h3>Components</h3>
+    <ul>
+      <li><strong>Agent</strong> — one <code>run(input) → output</code> unit wrapping a single LLM/API call</li>
+      <li><strong>Orchestrator</strong> — decides call order, and whether agent B's input includes agent A's output</li>
+      <li><strong>Blackboard</strong> — the shared table every agent reads/writes; doubles as log and dashboard source</li>
+    </ul>
+    <h3>Wiring — independent vs. collaborative</h3>
+    <p>The orchestrator, not the agents, decides this per task: chain outputs into inputs for collaborative work, or call agents in parallel with the same task input when they're independent.</p>
+    <div class="panel">
+      <div class="diagram-title">architecture — orchestrator + blackboard</div>
+      <div class="loop-wrap">
+        <div class="flow-row">
+          <div class="node stop">Live task (revealed on the day)</div>
+          <div class="arrow">→</div>
+          <div class="node signal">Orchestrator</div>
+        </div>
+        <div class="flow-row" style="padding-left:40px;">
+          <div class="arrow">↓</div>
+        </div>
+        <div class="flow-row" style="padding-left:20px;">
+          <div class="node">Agent 1</div>
+          <div class="arrow">···</div>
+          <div class="node">Agent 2</div>
+          <div class="arrow">···</div>
+          <div class="node">Agent 3</div>
+        </div>
+        <div class="flow-row" style="padding-left:40px;">
+          <span class="mono" style="font-size:11.5px;color:var(--caption);">dotted = wiring is decided per-task: chained (collaborative) or parallel (independent)</span>
+        </div>
+        <div class="flow-row" style="padding-left:40px;">
+          <div class="arrow">↓</div>
+        </div>
+        <div class="flow-row" style="padding-left:20px;">
+          <div class="node signal">SQLite — <span class="mono">runs</span> table</div>
+        </div>
+        <div class="flow-row" style="padding-left:40px;">
+          <div class="arrow">↓</div>
+        </div>
+        <div class="flow-row" style="padding-left:20px;">
+          <div class="node">Dashboard (reads DB, renders trace + result)</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="tag">§5 MARK'S REASONING METHOD</div>
+    <h2>Stating the trade, not just the pick</h2>
+    <table>
+      <tr><th>choice</th><th>immediate consequence</th><th>second-order consequence</th><th>stop condition — switch away when</th></tr>
+      <tr>
+        <td class="mono">hand-rolled classes, no framework</td>
+        <td>every line is yours to explain live; no hidden retry/parsing logic to get asked about</td>
+        <td>you write your own JSON-parsing/retry glue — small tax now, pays off because it's <em>visible</em> reasoning, which is what's being scored</td>
+        <td>if you had 3+ days and needed 10+ agents with complex routing, not 1 hour and 3 agents</td>
+      </tr>
+      <tr>
+        <td class="mono">single-shot per agent, no internal loop</td>
+        <td>fast to build, easy to trace input→output in the dashboard</td>
+        <td>if a task turns out to need multi-step lookup, you bolt on a small loop inside just that one agent — contained blast radius</td>
+        <td>the moment one specific agent's task is open-ended ("search until found"), give that one a loop; don't pre-build loops into all three</td>
+      </tr>
+      <tr>
+        <td class="mono">SQLite as the blackboard</td>
+        <td>zero setup, one file, inspectable with a one-liner mid-interview</td>
+        <td>the same table doubles as your execution log <em>and</em> your dashboard's data source — one write path, no sync problem</td>
+        <td>only if the interviewer explicitly wants a shared/networked DB — not needed for a local 1-hour demo</td>
+      </tr>
+    </table>
+  </section>
+
+  <section>
+    <div class="tag">§6 THE LEANER CUT</div>
+    <h2>Second-guessing my own design</h2>
+    <p>Fair question to ask of any design, including my own: is §4/§5 actually the simplest thing that satisfies the ask, or is it just <em>good engineering habit</em> showing up where it isn't earned? Re-running it against the real constraint — one hour, task unknown until the day, narrated live — it's the latter. Three things in the original plan are ceremony, not requirement.</p>
+    <table>
+      <tr><th>piece</th><th>immediate cost</th><th>second-order cost</th><th>verdict</th></tr>
+      <tr>
+        <td class="mono">BaseAgent class + 3 subclasses</td>
+        <td>typing <code>class</code>, <code>self</code>, inheritance live</td>
+        <td>if asked "why OOP here," you're defending a choice that buys nothing — no swapping/testing/extending happens in a one-off demo</td>
+        <td>drop it. plain functions do the same job with one fewer concept to defend</td>
+      </tr>
+      <tr>
+        <td class="mono">separate <code>schema.sql</code> file</td>
+        <td>one more file to create and open live</td>
+        <td>file-juggling under a clock for zero payoff — <code>CREATE TABLE IF NOT EXISTS</code> is one inline line</td>
+        <td>drop it</td>
+      </tr>
+      <tr>
+        <td class="mono">server-style dashboard (Streamlit/Flask)</td>
+        <td><code>pip install</code>, start a server, bind a port, open browser — live</td>
+        <td>the actual risk: network/pip failure or port collision burns your clock on infrastructure, not on the thing being scored</td>
+        <td>too much surface for a 1-hour unknown-task demo</td>
+      </tr>
+    </table>
+    <div class="callout">
+      <div class="label">Leaner shape — same requirements, fewer failure points</div>
+      <p style="margin:0">Three plain functions (<code>agent_1</code>, <code>agent_2</code>, <code>agent_3</code>), each one LLM call + one <code>log_run()</code> call. One shared <code>call_gemini()</code> helper. One shared <code>log_run()</code> helper writing to SQLite inline (stdlib, no schema file). "Dashboard" = a script that queries the DB and writes a static HTML table, opened via <code>file://</code> — zero server, zero port, zero deps beyond <code>google-generativeai</code>. Every remaining piece maps 1:1 to a literal line in the problem statement.</p>
+    </div>
+    <div class="compare">
+      <div>
+        <h4>§4/§5 shape</h4>
+        <pre><span class="k">class</span> BaseAgent:
+    name: str
+    system_prompt: str
+    <span class="k">def</span> run(self, input):
+        ...
+
+<span class="k">class</span> ResearchAgent(BaseAgent):
+    ...
+<span class="c"># + schema.sql
+# + streamlit dashboard</span></pre>
+      </div>
+      <div>
+        <h4>leaner cut</h4>
+        <pre><span class="k">def</span> agent_1(input: dict) -> dict:
+    output = call_claude(SYS_1, input)
+    log_run(<span class="s">"agent_1"</span>, input, output)
+    <span class="k">return</span> output
+
+<span class="c"># agent_2, agent_3 — same shape
+# dashboard.py: query DB -> write .html -> open it</span></pre>
+      </div>
+    </div>
+    <p><strong>Stop condition for staying lean:</strong> if the interviewer's "dashboard" clearly means a live-refreshing web app rather than "show me the result," upgrade to a small Flask route reading the DB at that point — don't pre-build it on a guess.</p>
+  </section>
+
+  <section>
+    <div class="tag">§7 DECISION LOG</div>
+    <h2>What's resolved, what's still open</h2>
+    <h3>Resolved: LLM provider — revised</h3>
+    <div class="decision">
+      <div class="label">Locked — Gemini API (switched from Claude)</div>
+      <p style="margin:0">Originally locked to Claude (fastest recall since it's your daily tool). Revised to Gemini for a real reason the first decision didn't weigh: cost — Gemini has a standing free tier (Google AI Studio), Claude and OpenAI don't. Still one key (<code>GEMINI_API_KEY</code>), one SDK call shape reused across all three agents — the "less surface to fumble live" reasoning holds regardless of which provider sits behind it. <strong>Verify current free-tier rate limits at ai.google.dev before the interview</strong> — a tight free-tier limit mid-demo is exactly the kind of failure §9 is about.</p>
+    </div>
+    <h3>Resolved: architecture shape — build both, sequenced</h3>
+    <div class="decision">
+      <div class="label">Locked — two separate projects, not a single either/or</div>
+      <p style="margin:0 0 8px">§6 Leaner Cut and §4/§5 Original both satisfy every stated requirement, but they serve different clocks:</p>
+      <ol style="margin:0 0 8px">
+        <li><strong>§6 Leaner Cut, built and rehearsed first.</strong> This is what actually runs live on interview day — fewer failure points (no server/port risk) matters most when the clock is real and unforgiving.</li>
+        <li><strong>§4/§5 Original, built second, as a standalone portfolio project.</strong> No clock pressure here, so the "production-shaped" version (classes, schema file, server dashboard) is worth having on its own merits — separate from interview prep.</li>
+      </ol>
+      <p style="margin:0">Reasoning: rehearsing one shape deeply beats knowing two shallowly for the specific goal of "execute live in an hour." Building both back-to-back under equal weight would split rehearsal time exactly where it's least affordable.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="tag">§8 MINIMAL AGENT — THE ACTUAL SHAPE</div>
+    <h2>What you're typing, stripped to essentials</h2>
+    <h3>Base pattern (§4/§5 shape — see §6 for the leaner alternative)</h3>
+    <div class="compare">
+      <div>
+        <h4>not this</h4>
+        <pre><span class="c"># no structure, no log, no reuse</span>
+answer = llm.call(prompt)
+print(answer)</pre>
+      </div>
+      <div>
+        <h4>this</h4>
+        <pre><span class="k">class</span> BaseAgent:
+    name: str
+    system_prompt: str
+
+    <span class="k">def</span> run(self, input: dict) -> dict:
+        output = call_llm(
+            self.system_prompt, input
+        )
+        log_to_db(self.name, input, output)
+        <span class="k">return</span> output</pre>
+      </div>
+    </div>
+    <p>Three subclasses of this, one <code>orchestrator.py</code> that calls them in whatever order the live task needs, one <code>schema.sql</code> for the <code>runs</code> table, one small dashboard script that queries it. That's the whole system. Nothing here is framework-shaped — every piece is something you can point at and explain.</p>
+
+    <h3>The real Gemini call (revised from Claude — see §7)</h3>
+    <div class="panel">
+      <div class="diagram-title">call_gemini — actual Gemini API shape</div>
+      <pre><span class="k">import</span> google.generativeai <span class="k">as</span> genai
+
+genai.configure(api_key=os.environ.get(<span class="s">"GEMINI_API_KEY"</span>))
+
+<span class="k">def</span> call_gemini(system_prompt: str, input: dict) -> str:
+    model = genai.GenerativeModel(
+        model_name=<span class="s">"gemini-1.5-flash"</span>,
+        system_instruction=system_prompt,
+    )
+    res = model.generate_content(str(input))
+    <span class="k">return</span> res.text</pre>
+    </div>
+    <div class="callout">
+      <div class="label">Verify before the call</div>
+      <p style="margin:0"><code>genai.GenerativeModel(...).generate_content(...)</code> and the <code>res.text</code> shape are the standard <code>google-generativeai</code> SDK surface — confirm against whatever version lands in your <code>pip install google-generativeai</code> on interview day, and check ai.google.dev for the current free-tier model name/limits since <code>gemini-1.5-flash</code> may have been superseded.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="tag">§9 WHEN THE AI GETS IT WRONG, LIVE</div>
+    <h2>The actual test isn't the happy path</h2>
+    <p>He said it outright: not communication skill, not memorized syntax — problem-solving, watched in real time. The moment the AI-generated code does something wrong is the moment that's actually being scored. The happy path proves you can prompt; the recovery proves you can think.</p>
+
+    <h3>Before you run anything</h3>
+    <ul>
+      <li>Say the expected output out loud <em>before</em> executing — "this should return a JSON object with a summary field." A stated expectation makes any deviation immediately visible and narratable, instead of a silent surprise.</li>
+      <li>Wrap every LLM call's output handling in something that fails loud, not silent — an unhandled exception you can read beats a swallowed error you have to go hunting for.</li>
+    </ul>
+
+    <h3>Failure classes, by what they actually look like</h3>
+    <table>
+      <tr><th>what you see</th><th>likely cause</th><th>recovery move</th></tr>
+      <tr>
+        <td>Response isn't valid JSON / missing a field you expected</td>
+        <td>Prompt didn't constrain the output shape tightly enough</td>
+        <td>Re-prompt with an explicit schema in the system prompt ("respond with JSON: {field: type}"); narrate that you're tightening the contract</td>
+      </tr>
+      <tr>
+        <td>Model references a method, API, or fact that doesn't exist</td>
+        <td>Hallucination — models do this confidently, not just when uncertain</td>
+        <td>Say it plainly: "that's not verified, I wouldn't trust this without checking the real API." Don't defend a hallucinated detail because the AI produced it</td>
+      </tr>
+      <tr>
+        <td>Script throws on import or syntax</td>
+        <td>Version mismatch, or the AI assumed a library/method that isn't installed</td>
+        <td>Read the actual traceback line out loud, isolate which call failed, fix that one line — don't regenerate the whole file blind</td>
+      </tr>
+      <tr>
+        <td>Correct-looking output, but wrong for the task</td>
+        <td>Prompt under-specified the actual goal</td>
+        <td>Narrate the gap between what you asked and what you meant, then tighten the prompt — this is the most common one and the easiest to explain well</td>
+      </tr>
+    </table>
+
+    <h3>The rule that matters most</h3>
+    <p><strong>Never silently retry.</strong> Every retry gets a spoken reason: what was wrong, what you changed, why you expect this attempt to work. A silent retry that happens to succeed looks like luck. A narrated retry looks like debugging skill — which is the actual thing being evaluated.</p>
+    <div class="callout">
+      <div class="label">Rehearsal tip</div>
+      <p style="margin:0">Deliberately break something once during practice — feed an agent a malformed input, or ask the LLM a question it can't answer well — so the recovery move is muscle memory, not improvised for the first time under a clock.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="tag">§10 QUESTIONS HE MIGHT ASK</div>
+    <h2>Anticipated, from his side of the table — with answers</h2>
+    <p class="lede">Grounded in what he emphasized directly: problem-solving process, on-screen reasoning, no blind copy-paste. Written as if answering him directly, out loud — say these in your own words, not read verbatim.</p>
+
+    <h3>Architecture &amp; design decisions</h3>
+    <div class="qa">
+      <p class="q">"Why three separate agents instead of one doing everything?"</p>
+      <p class="a">I split it into three because a single LLM call only gets one shot — ask, get an answer, done. It can't look something up, reason about it, and then decide to go look up more. The moment I need that kind of staged thinking, I need separate steps. So each agent owns one narrow job, with a clear input and output I can point at.</p>
+    </div>
+    <div class="qa">
+      <p class="q">"Why didn't you use a framework — LangChain, CrewAI, AutoGPT?"</p>
+      <p class="a">I didn't reach for a framework because then every retry, every parsing decision, every routing choice is happening inside code I didn't write. If you ask me why something did what it did, I want to answer from my own code, not from library internals I'd have to go look up live. For three small agents in an hour, hand-rolling it is actually faster for me to reason about.</p>
+    </div>
+    <div class="qa">
+      <p class="q">"Why plain functions and not classes?"</p>
+      <p class="a">I went with plain functions because classes earn their cost when you're swapping implementations or testing over time. This is a one-shot build — a function that takes an input and returns an output does the same job, and it's one less thing I have to justify while I'm also explaining the agent logic itself.</p>
+    </div>
+    <div class="qa">
+      <p class="q">"How do you decide if two agents should be independent or collaborative?"</p>
+      <p class="a">That's not really the agents' decision, it's mine, in the orchestrator. If agent B actually needs agent A's result to do its job, I chain them — A's output becomes part of B's input. If they don't depend on each other, I just call them in parallel with the same task. I look at the task first, then decide the wiring.</p>
+    </div>
+    <div class="qa">
+      <p class="q">"Walk me through what happens, end to end, for the task you just gave me."</p>
+      <p class="a">Sure — the task comes in, the orchestrator decides how the three agents should be wired for it. Each agent makes one call to Gemini, and right after that I log the input and output into a SQLite table. Once all three have run, the dashboard just reads that table and shows the trace. Same flow no matter what the specific task ends up being.</p>
+    </div>
+    <div class="qa">
+      <p class="q">"What would you cut first if you only had 20 minutes instead of 60?"</p>
+      <p class="a">The dashboard polish. Even just printing the database rows to the terminal proves the persistence works and shows you a result. What I won't cut is the agent logic and the database writes — those are the actual requirements. Presentation is the one thing I'd trade for time.</p>
+    </div>
+    <div class="qa">
+      <p class="q">"Why haven't you implemented a control loop — shouldn't an agent be able to trigger itself again if needed?"</p>
+      <p class="a">That's a deliberate call, not an oversight. A loop — observe, decide, act, repeat — earns its cost when the number of steps isn't known upfront: open-ended search, retrying until an output passes validation, debugging until tests pass. My three agents are single-shot. Each one takes a defined input, makes one call, produces a defined output, and hands it to the next stage. There's no branching decision inside any of them that requires re-evaluating state and choosing an action again — so a loop here would just be machinery with nothing to do, extra code I'd have to justify without it buying any correctness or robustness. If one of your three tasks turns out to be genuinely open-ended — keep searching until a specific fact turns up, or validate an output and retry until it's well-formed — that's exactly the signal to add a loop, but only to that one agent, not all three. I'd rather add that complexity the moment it's actually earned than pre-build it on a guess.</p>
+    </div>
+
+    <h3>Data &amp; persistence</h3>
+    <div class="qa">
+      <p class="q">"Why SQLite and not Postgres, Mongo, or just a file?"</p>
+      <p class="a">SQLite, because it's zero setup — it's one file. If you want to see what's actually stored, I can open a terminal and query it in one line, right in front of you. A networked database would just be one more thing that could fail to connect, for no benefit at this scale.</p>
+    </div>
+    <div class="qa">
+      <p class="q">"What exactly gets logged — inputs, outputs, timestamps, errors?"</p>
+      <p class="a">For every single agent call I log the agent's name, the full input it received, the full output it produced, and a timestamp. And that's true even when a call fails — I don't want failures disappearing silently, I want them sitting in the same table as everything else.</p>
+    </div>
+    <div class="qa">
+      <p class="q">"If this ran 1,000 times a day in production, what would you change first?"</p>
+      <p class="a">Honestly, a few things — SQLite doesn't handle concurrent writes well at that volume, so I'd move to something that does. I'd add retry and backoff around the LLM calls instead of handling failures manually. And I'd separate the execution log from anything user-facing. None of that's needed for a one-hour demo, but I want to be clear I know where that line is.</p>
+    </div>
+
+    <h3>Failure &amp; edge cases</h3>
+    <div class="qa">
+      <p class="q">"What happens if agent 2 depends on agent 1's output, and agent 1 returns garbage?"</p>
+      <p class="a">Then agent 2 is going to work off garbage too — but because I'm logging both, that's visible immediately in the dashboard, I'm not hunting for it. My fix in that moment is to go back and tighten agent 1's prompt, not to try patching it downstream in agent 2.</p>
+    </div>
+    <div class="qa">
+      <p class="q">"How do you know the LLM's output is actually correct, not just well-formatted?"</p>
+      <p class="a">Honestly, I don't, by default. Well-formatted and correct are two different claims. If it's something checkable — a fact, a number — I'd verify it against a real source. If it's more open-ended synthesis, I'd just say plainly that this hasn't been independently verified, rather than pretend it has.</p>
+    </div>
+    <div class="qa">
+      <p class="q">"What if the API call times out or hits a rate limit mid-demo?"</p>
+      <p class="a">If that happens, I'm not going to pretend it didn't. I'll say out loud what just happened — that's a timeout or a rate limit — and then retry with a reason, not just silently hit run again and hope.</p>
+    </div>
+    <div class="qa">
+      <p class="q">"Two agents produce conflicting results — how do you resolve that?"</p>
+      <p class="a">I wouldn't quietly pick one. I'd log both outputs, point out that they disagree, and either re-run the next agent with both flagged, or treat the disagreement itself as a sign that one of the prompts needs tightening.</p>
+    </div>
+
+    <h3>Live AI-tool use (the one he's most likely probing hardest)</h3>
+    <div class="qa">
+      <p class="q">"Explain this specific line the AI just wrote — what does it do, and why is it there?"</p>
+      <p class="a">I'd walk through it line by line in my own words — not repeat back whatever comment the AI put there. If I get to a line and can't explain what it does, that's my signal to stop and actually read it before I keep going.</p>
+    </div>
+    <div class="qa">
+      <p class="q">"How do you know the AI's own explanation of its code is accurate?"</p>
+      <p class="a">I don't just take its word for it. I check its explanation against what the code actually does when I run it — same as I wouldn't trust a comment in a teammate's code without reading the function underneath it.</p>
+    </div>
+    <div class="qa">
+      <p class="q">"That didn't work — what's your next move?"</p>
+      <p class="a">First thing I do is say out loud what kind of failure this is — bad output format, a made-up method that doesn't exist, an actual traceback, or a prompt that was too vague. Then I make one specific fix for that. I don't just regenerate the whole thing and hope it's different this time.</p>
+    </div>
+    <div class="qa">
+      <p class="q">"Would you trust this output if it were going in front of a customer?"</p>
+      <p class="a">Not as-is, no. What I've built here is optimized to show my reasoning clearly in an hour, not to be production-ready. Those are different bars, and I'd rather say that directly than oversell it.</p>
+    </div>
+
+    <h3>Meta / reflection</h3>
+    <div class="qa">
+      <p class="q">"What's the biggest risk in this design, and how would you mitigate it?"</p>
+      <p class="a">The biggest risk is one call in the middle returning something malformed and breaking the chain for whatever comes after it. I mitigate that by keeping each agent's expected output format tight in the prompt, and by logging every call so a bad one is visible the moment it happens, instead of quietly poisoning the next step.</p>
+    </div>
+    <div class="qa">
+      <p class="q">"What would you have done differently with more time?"</p>
+      <p class="a">With more time I'd add actual schema validation on the outputs instead of just trusting the text back, and a real retry-with-backoff layer instead of me manually re-prompting. I skipped both on purpose for today, not because I didn't think of them.</p>
+    </div>
+    <div class="qa">
+      <p class="q">"Why this architecture over the alternatives you considered?"</p>
+      <p class="a">I actually built a more class-based version too, with its own schema file and a Streamlit dashboard, and I can walk you through why I moved away from it for this — it adds a server and more moving parts, which is more that can fail live, for no benefit at this scope. I went with the leaner version because it matches the actual constraint: one hour, and the task decided on the spot.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="tag">§11 BEFORE THE CALL</div>
+    <h2>Checklist</h2>
+    <ul class="checklist">
+      <li>Base agent class + one working single-shot call tested against a throwaway prompt, <em>before</em> the interview</li>
+      <li>SQLite schema created and one row written + read back, end to end</li>
+      <li>Dashboard renders from the DB, not from in-memory state — proves persistence actually works</li>
+      <li>A stop-condition habit: say out loud, for whatever loop you write, "this stops when ___"</li>
+      <li>Rehearsed one practice task through the full pipeline so the wiring is muscle memory, not improvisation</li>
+    </ul>
+  </section>
+
+  <footer>
+    agent-field-notes.html — living document, updated across the session · right_job.in prep
+  </footer>
+</div>
+
+<script>
+  (function(){
+    var root = document.documentElement;
+    var btn = document.getElementById('themeToggle');
+    var stored = localStorage.getItem('afn-theme');
+    var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var initial = stored || (prefersDark ? 'dark' : 'light');
+    root.setAttribute('data-theme', initial);
+
+    btn.addEventListener('click', function(){
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      localStorage.setItem('afn-theme', next);
+    });
+  })();
+</script>

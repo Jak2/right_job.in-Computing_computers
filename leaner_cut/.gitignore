@@ -1,0 +1,4 @@
+.env
+blackboard.db
+dashboard.html
+__pycache__/

@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    agent_name TEXT,
+    input TEXT,
+    output TEXT
+);
