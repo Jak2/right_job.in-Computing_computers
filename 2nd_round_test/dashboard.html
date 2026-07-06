@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agent Blackboard Dashboard</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f5f6f8;
+    --card-bg: #ffffff;
+    --text: #1a1d21;
+    --muted: #6b7280;
+    --border: #e3e5e8;
+    --accent: #4f46e5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121316;
+      --card-bg: #1c1e22;
+      --text: #eef0f2;
+      --muted: #9aa0a8;
+      --border: #2c2f34;
+      --accent: #8183f4;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 24px;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  h1 { font-size: 1.4rem; margin: 0; }
+  .subtitle { color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
+
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  input[type="text"] {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    min-width: 220px;
+    font-size: 0.9rem;
+  }
+  button {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  button.secondary {
+    background: transparent;
+    color: var(--accent);
+  }
+  button:hover { opacity: 0.9; }
+
+  .status {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 220px;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .card-title {
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .icon { font-size: 1.2rem; }
+  .timestamp { font-size: 0.75rem; color: var(--muted); }
+  .card-body {
+    flex: 1;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    max-height: 320px;
+  }
+  .empty { color: var(--muted); font-style: italic; }
+  .query-echo {
+    font-size: 0.78rem;
+    color: var(--muted);
+    border-top: 1px dashed var(--border);
+    margin-top: 8px;
+    padding-top: 8px;
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Agent Blackboard Dashboard</h1>
+    <div class="subtitle">Weather · Timezone (GMT 0–10) · Currency Exchange</div>
+  </div>
+  <div class="toolbar">
+    <input id="queryInput" type="text" placeholder="Optional query context shown per widget" />
+    <button id="refreshBtn">Refresh from Blackboard</button>
+    <button id="autoBtn" class="secondary">Auto-refresh: off</button>
+  </div>
+</header>
+
+<div class="status" id="statusLine">Loading...</div>
+
+<div class="grid" id="grid">
+  <div class="card" data-agent="weather_agent">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">☀️</span> Weather — States & Capitals</div>
+      <div class="timestamp" data-field="timestamp">—</div>
+    </div>
+    <div class="card-body" data-field="output"><span class="empty">No data yet. Run the weather agent.</span></div>
+    <div class="query-echo" data-field="input"></div>
+  </div>
+
+  <div class="card" data-agent="timezone_agent">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">🕐</span> Timezones — GMT 0 to GMT 10</div>
+      <div class="timestamp" data-field="timestamp">—</div>
+    </div>
+    <div class="card-body" data-field="output"><span class="empty">No data yet. Run the timezone agent.</span></div>
+    <div class="query-echo" data-field="input"></div>
+  </div>
+
+  <div class="card" data-agent="currency_agent">
+    <div class="card-header">
+      <div class="card-title"><span class="icon">💱</span> Currency — USD / GBP / KWD</div>
+      <div class="timestamp" data-field="timestamp">—</div>
+    </div>
+    <div class="card-body" data-field="output"><span class="empty">No data yet. Run the currency agent.</span></div>
+    <div class="query-echo" data-field="input"></div>
+  </div>
+</div>
+
+<script>
+  const statusLine = document.getElementById("statusLine");
+  const refreshBtn = document.getElementById("refreshBtn");
+  const autoBtn = document.getElementById("autoBtn");
+  let autoTimer = null;
+
+  async function loadBlackboard() {
+    statusLine.textContent = "Querying blackboard...";
+    try {
+      const res = await fetch("/api/blackboard");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+
+      document.querySelectorAll(".card").forEach((card) => {
+        const agent = card.dataset.agent;
+        const entry = data[agent];
+        const outputEl = card.querySelector('[data-field="output"]');
+        const tsEl = card.querySelector('[data-field="timestamp"]');
+        const inputEl = card.querySelector('[data-field="input"]');
+
+        if (entry) {
+          outputEl.textContent = entry.output_data;
+          tsEl.textContent = entry.created_at;
+          inputEl.textContent = entry.input_data ? `Query: ${entry.input_data}` : "";
+        } else {
+          outputEl.innerHTML = '<span class="empty">No data yet.</span>';
+          tsEl.textContent = "—";
+          inputEl.textContent = "";
+        }
+      });
+
+      statusLine.textContent = `Last updated ${new Date().toLocaleTimeString()}`;
+    } catch (err) {
+      statusLine.textContent = `Failed to query blackboard: ${err.message}`;
+    }
+  }
+
+  refreshBtn.addEventListener("click", loadBlackboard);
+
+  autoBtn.addEventListener("click", () => {
+    if (autoTimer) {
+      clearInterval(autoTimer);
+      autoTimer = null;
+      autoBtn.textContent = "Auto-refresh: off";
+    } else {
+      autoTimer = setInterval(loadBlackboard, 5000);
+      autoBtn.textContent = "Auto-refresh: on (5s)";
+    }
+  });
+
+  loadBlackboard();
+</script>
+</body>
+</html>
