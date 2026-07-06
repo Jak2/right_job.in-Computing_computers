@@ -1161,3 +1161,97 @@ The single unifying principle: **every piece of your system should map to a lite
 - What "Universal Worker Model" specifically means at this company — ask them, don't guess
 - Current LangGraph/CrewAI/AutoGen/OpenAI Agents SDK capabilities if the conversation goes deep on frameworks
 - Current MCP spec details if asked to go beyond the one-sentence definition
+
+---
+
+## 11. Real-world use cases for each pattern
+
+The demo topic ("quantum computing," "what color is a tomato") is deliberately
+generic so the wiring is easy to see. Here's where each pattern actually earns
+its place in a real system — good material if asked "okay, but where would
+you really use this."
+
+### Pipeline (sequential)
+
+> "Anywhere the task is genuinely a chain of dependent steps, where step two
+> is meaningless without step one's real output."
+
+- **Document processing**: OCR a scanned form → extract structured fields →
+  validate those fields against business rules. Each stage needs the
+  previous stage's actual output, not just the raw document.
+- **Customer support triage**: classify the incoming ticket → draft a
+  response using that classification → run a policy-compliance check on the
+  drafted response. A compliance check on the *raw ticket* would be
+  meaningless; it needs the draft.
+- **Code review bots**: lint/parse the diff → have an agent explain what
+  changed → have a second agent flag risks based on that explanation.
+- **The healthcare-intake example from the UWM prep notes**: classify
+  document type → extract fields → validate against policy rules → auto-file
+  or escalate. That's a pipeline with a confidence-gated branch at the end.
+
+### Parallel / independent
+
+> "Anywhere you're asking multiple unrelated questions about the same input,
+> and none of the answers depend on each other."
+
+- **Multi-aspect content moderation**: check a post for spam, for toxicity,
+  and for policy violations, all at once — none of those checks needs
+  another check's result, and running them concurrently cuts latency to the
+  slowest single check instead of the sum of all three.
+- **Document summarization at different angles**: one agent gives an
+  executive summary, one extracts action items, one extracts risks — same
+  source document, three independent lenses, shown together on one
+  dashboard.
+- **Portfolio analysis**: evaluate the same financial report for growth
+  signals, risk signals, and compliance flags simultaneously — three
+  specialists, one input, no cross-talk needed.
+- **A/B'ing model outputs**: same prompt sent to three different agents (or
+  three different models) in parallel, purely to compare their answers side
+  by side.
+
+### Supervisor (orchestrator-worker)
+
+> "Anywhere the *shape* of what's needed genuinely depends on the specific
+> request, and you don't want to pay for steps the request doesn't need."
+
+- **Customer support routing**: a simple "what are your hours" question
+  should never trigger a full multi-agent investigation; a "my payment was
+  charged twice and my account is locked" message should. A router decides
+  which specialist agents actually get involved.
+- **IT helpdesk / NOC triage** (the shape of the 5G pipeline from the UWM
+  prep notes): a routine, previously-seen signaling error auto-resolves
+  through a known fix path; a genuinely novel failure pattern escalates into
+  a deeper multi-agent investigation.
+- **Search assistants**: a factual one-liner gets answered directly; a
+  "compare and recommend" query triggers retrieval + comparison + synthesis
+  agents.
+- **Any system with a cost-sensitive LLM budget**: the router is what stops
+  every request from unconditionally paying for the most expensive possible
+  path.
+
+### Blackboard
+
+> "Anywhere agents can't safely assume they're all alive in the same process
+> at the same time — because they run on schedules, restart independently,
+> or need to be swapped without touching the others."
+
+- **Long-running investigation pipelines**: a fraud-detection agent flags a
+  transaction now; a human reviews it hours later; a resolution agent acts
+  on the human's decision days after that. None of those three could still
+  be holding a Python variable in memory — they only work because each one
+  reads the shared record left by the last.
+- **Multi-team agent ownership**: if Extractor and Risk Analyst are
+  maintained by different teams that deploy on different schedules, they
+  can't call each other's functions directly without becoming a deployment
+  dependency — a shared table (or queue) lets either be redeployed alone.
+  This is the same principle as the agent run/episode tables from the UWM
+  prep notes ("persist per step, not per run, so a crash resumes instead of
+  restarting").
+- **Sensor fusion / monitoring systems**: multiple independent monitors
+  (network, disk, application logs) each write findings to a shared board;
+  a separate correlation agent reads across all of them without any monitor
+  needing to know the others exist.
+- **Human-in-the-loop steps with unknown wait time**: exactly the "step
+  seven needs a human, and that human doesn't respond for twenty minutes"
+  scenario from the UWM prep notes — the process can end entirely and
+  resume later purely by reading the board, with no in-memory state to lose.
